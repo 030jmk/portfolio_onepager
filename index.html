@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search...">
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <select name="subdomains" id="subdomainSelect" class="form-control filter-select" multiple="multiple">
+                    {% for subdomain in subdomains %}
+                        <option value="{{ subdomain }}">{{ subdomain }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select name="industries" id="industrySelect" class="form-control filter-select" multiple="multiple">
+                    {% for industry in industries %}
+                        <option value="{{ industry }}">{{ industry }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select name="technologies" id="technologySelect" class="form-control filter-select" multiple="multiple">
+                    {% for technology in technologies %}
+                        <option value="{{ technology }}">{{ technology }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="row" id="cardsContainer">
+            <!-- Cards will be populated here -->
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('.filter-select').select2({
+            placeholder: 'Select an option'
+        });
+
+        function fetchFilteredData() {
+            let search = $('#searchInput').val();
+            let subdomains = $('#subdomainSelect').val() || [];
+            let industries = $('#industrySelect').val() || [];
+            let technologies = $('#technologySelect').val() || [];
+
+            $.ajax({
+                url: '/filter',
+                data: {
+                    search: search,
+                    subdomains: subdomains,
+                    industries: industries,
+                    technologies: technologies
+                },
+                success: function(data) {
+                    $('#cardsContainer').empty();
+                    data.forEach(function(caseItem, index) {
+                        let cardHtml = `
+                            <div class="col-md-4 mb-4 card-item">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${caseItem.name}</h5>
+                                        <button class="btn btn-primary" data-toggle="modal" data-target="#modal${index}">Learn More</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="modal${index}" tabindex="-1" role="dialog">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">${caseItem.name}</h5>
+                                            <button type="button" class="close" data-dismiss="modal">
+                                                <span>&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>Challenge:</strong> ${caseItem.Challenge}</p>
+                                            <p><strong>Solution:</strong> ${caseItem.solution}</p>
+                                            <p><strong>Benefit:</strong> ${caseItem.benefit}</p>
+                                            <p><strong>Impact:</strong> ${caseItem.impact}</p>
+                                            <p><strong>Complexity:</strong> ${caseItem.complexity}</p>
+                                            <p><strong>Subdomain:</strong> ${caseItem.subdomain}</p>
+                                            <p><strong>Industries:</strong> ${caseItem.industries.join(', ')}</p>
+                                            <p><strong>Technologies:</strong> ${caseItem.technologies.join(', ')}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        $('#cardsContainer').append(cardHtml);
+                    });
+                }
+            });
+        }
+
+        $('#searchInput').on('input', fetchFilteredData);
+        $('.filter-select').on('change', fetchFilteredData);
+
+        // Initial fetch to populate data
+        fetchFilteredData();
+    });
+    </script>
+</body>
+</html>
