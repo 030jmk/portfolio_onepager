@@ -14,6 +14,7 @@
 
         <div class="row mb-3">
             <div class="col-md-4">
+               <!-- <label for="subdomainSelect">Subdomains</label> -->
                 <select name="subdomains" id="subdomainSelect" class="form-control filter-select" multiple="multiple">
                     {% for subdomain in subdomains %}
                         <option value="{{ subdomain }}">{{ subdomain }}</option>
@@ -21,6 +22,7 @@
                 </select>
             </div>
             <div class="col-md-4">
+           <!-- <label for="industrySelect">Industries</label> -->
                 <select name="industries" id="industrySelect" class="form-control filter-select" multiple="multiple">
                     {% for industry in industries %}
                         <option value="{{ industry }}">{{ industry }}</option>
@@ -28,6 +30,7 @@
                 </select>
             </div>
             <div class="col-md-4">
+               <!-- <label for="technologySelect">Technologies</label> -->
                 <select name="technologies" id="technologySelect" class="form-control filter-select" multiple="multiple">
                     {% for technology in technologies %}
                         <option value="{{ technology }}">{{ technology }}</option>
@@ -47,8 +50,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <script>
     $(document).ready(function() {
-        $('.filter-select').select2({
-            placeholder: 'Select an option'
+        $('#subdomainSelect').select2({
+            placeholder: 'Select a Subdomain'
+        });
+        $('#industrySelect').select2({
+            placeholder: 'Select an Industry'
+        });
+        $('#technologySelect').select2({
+            placeholder: 'Select a Technology'
         });
 
         function fetchFilteredData() {
@@ -65,50 +74,55 @@
                     industries: industries,
                     technologies: technologies
                 },
+                traditional: true,  // Important for proper array handling
                 success: function(data) {
-                    $('#cardsContainer').empty();
-                    data.forEach(function(caseItem, index) {
-                        let cardHtml = `
-                            <div class="col-md-4 mb-4 card-item">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h5 class="card-title">${caseItem.name}</h5>
-                                        <button class="btn btn-primary" data-toggle="modal" data-target="#modal${index}">Learn More</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="modal fade" id="modal${index}" tabindex="-1" role="dialog">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">${caseItem.name}</h5>
-                                            <button type="button" class="close" data-dismiss="modal">
-                                                <span>&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <p><strong>Challenge:</strong> ${caseItem.Challenge}</p>
-                                            <p><strong>Solution:</strong> ${caseItem.solution}</p>
-                                            <p><strong>Benefit:</strong> ${caseItem.benefit}</p>
-                                            <p><strong>Impact:</strong> ${caseItem.impact}</p>
-                                            <p><strong>Complexity:</strong> ${caseItem.complexity}</p>
-                                            <p><strong>Subdomain:</strong> ${caseItem.subdomain}</p>
-                                            <p><strong>Industries:</strong> ${caseItem.industries.join(', ')}</p>
-                                            <p><strong>Technologies:</strong> ${caseItem.technologies.join(', ')}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        $('#cardsContainer').append(cardHtml);
-                    });
+                    updateCards(data);
                 }
             });
         }
 
+        function updateCards(data) {
+            $('#cardsContainer').empty();
+            data.forEach(function(caseItem, index) {
+                let cardHtml = `
+                    <div class="col-md-4 mb-4 card-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">${caseItem.name}</h5>
+                                <button class="btn btn-primary" data-toggle="modal" data-target="#modal${index}">Learn More</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="modal${index}" tabindex="-1" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">${caseItem.name}</h5>
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <p><strong>Challenge:</strong> ${caseItem.Challenge}</p>
+                                    <p><strong>Solution:</strong> ${caseItem.solution}</p>
+                                    <p><strong>Benefit:</strong> ${caseItem.benefit}</p>
+                                    <p><strong>Impact:</strong> ${caseItem.impact}</p>
+                                    <p><strong>Complexity:</strong> ${caseItem.complexity}</p>
+                                    <p><strong>Subdomain:</strong> ${caseItem.subdomain}</p>
+                                    <p><strong>Industries:</strong> ${caseItem.industries.join(', ')}</p>
+                                    <p><strong>Technologies:</strong> ${caseItem.technologies.join(', ')}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $('#cardsContainer').append(cardHtml);
+            });
+        }
+
         $('#searchInput').on('input', fetchFilteredData);
-        $('.filter-select').on('change', fetchFilteredData);
+        $('#subdomainSelect, #industrySelect, #technologySelect').on('change', fetchFilteredData);
 
         // Initial fetch to populate data
         fetchFilteredData();
