@@ -39,6 +39,10 @@ def modify_json_file(input_file, output_file):
     except Exception as e:
         print(f"An error occurred: {str(e)}")
 
+def title_case(text):
+    """Helper function to properly capitalize each word"""
+    return ' '.join(word.capitalize() for word in text.split())
+
 def flatten_json_structure(input_file, output_file):
     try:
         # Read the JSON file
@@ -57,6 +61,7 @@ def flatten_json_structure(input_file, output_file):
                         # Create new usecase object with subdomain and process as attributes
                         flattened_usecase = {
                             **usecase,
+                            'name': title_case(usecase['name']),  # Capitalize each word in the title
                             'subdomain': subdomain_name,
                             'process': process_name
                         }
