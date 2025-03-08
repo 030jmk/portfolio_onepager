@@ -3,130 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Landing Page</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <title>PwC AI Use Case Explorer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
-    <div class="container mt-5">
-        <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search...">
-
-        <div class="row mb-3">
-            <div class="col-md-4">
-               <!-- <label for="subdomainSelect">Subdomains</label> -->
-                <select name="subdomains" id="subdomainSelect" class="form-control filter-select" multiple="multiple">
-                    {% for subdomain in subdomains %}
-                        <option value="{{ subdomain }}">{{ subdomain }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-4">
-           <!-- <label for="industrySelect">Industries</label> -->
-                <select name="industries" id="industrySelect" class="form-control filter-select" multiple="multiple">
-                    {% for industry in industries %}
-                        <option value="{{ industry }}">{{ industry }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-4">
-               <!-- <label for="technologySelect">Technologies</label> -->
-                <select name="technologies" id="technologySelect" class="form-control filter-select" multiple="multiple">
-                    {% for technology in technologies %}
-                        <option value="{{ technology }}">{{ technology }}</option>
-                    {% endfor %}
-                </select>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">PwC AI Use Case Explorer</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="subdomainDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Subdomains
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="subdomainDropdown">
+                            <li>
+                                <div class="form-check" id="subdomain-filters">
+                                    {% for subdomain in subdomains %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="{{ subdomain.lower() }}" id="subdomain-{{ subdomain.lower() }}">
+                                        <label class="form-check-label" for="subdomain-{{ subdomain.lower() }}">{{ subdomain }}</label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="industryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Industries
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="industryDropdown">
+                            <li>
+                                <div class="form-check" id="industry-filters">
+                                    {% for industry in industries %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="{{ industry.lower() }}" id="industry-{{ industry.lower() }}">
+                                        <label class="form-check-label" for="industry-{{ industry.lower() }}">{{ industry }}</label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="technologyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Technologies
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="technologyDropdown">
+                            <li>
+                                <div class="form-check" id="technology-filters">
+                                    {% for technology in technologies %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="{{ technology.lower() }}" id="technology-{{ technology.lower() }}">
+                                        <label class="form-check-label" for="technology-{{ technology.lower() }}">{{ technology }}</label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                <form class="d-flex">
+                    <input class="form-control bg-dark text-white me-2" type="search" id="search-input" placeholder="Search use cases" aria-label="Search">
+                    <button class="btn btn-outline-light" type="button" id="clear-filters">🧹</button>
+                </form>
             </div>
         </div>
-
-        <div class="row" id="cardsContainer">
-            <!-- Cards will be populated here -->
+    </nav>
+<br><br>
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="active-filters">
+                    <span id="active-filters-text"></span>
+                </div>
+            </div>
+        </div>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="case-cards">
+            <!-- Case cards will be populated here -->
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-    <script>
-    $(document).ready(function() {
-        $('#subdomainSelect').select2({
-            placeholder: 'Select a Subdomain'
-        });
-        $('#industrySelect').select2({
-            placeholder: 'Select an Industry'
-        });
-        $('#technologySelect').select2({
-            placeholder: 'Select a Technology'
-        });
+    <!-- Modal -->
+    <div class="modal fade" id="caseModal" tabindex="-1" aria-labelledby="caseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="caseModalLabel"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="challenge"></p>
+                    <p id="solution"></p>
+                    <p id="benefit"></p>
+                    <p><strong>Subdomain:</strong> <span id="subdomain"></span></p>
+                    <p><strong>Process:</strong> <span id="process"></span></p>
+                    <p><strong>Technologies:</strong></p>
+                    <ul id="technologies"></ul>
+                    <p><strong>Industries:</strong></p>
+                    <ul id="industries"></ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        function fetchFilteredData() {
-            let search = $('#searchInput').val();
-            let subdomains = $('#subdomainSelect').val() || [];
-            let industries = $('#industrySelect').val() || [];
-            let technologies = $('#technologySelect').val() || [];
-
-            $.ajax({
-                url: '/filter',
-                data: {
-                    search: search,
-                    subdomains: subdomains,
-                    industries: industries,
-                    technologies: technologies
-                },
-                traditional: true,  // Important for proper array handling
-                success: function(data) {
-                    updateCards(data);
-                }
-            });
-        }
-
-        function updateCards(data) {
-            $('#cardsContainer').empty();
-            data.forEach(function(caseItem, index) {
-                let cardHtml = `
-                    <div class="col-md-4 mb-4 card-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">${caseItem.name}</h5>
-                                <button class="btn btn-primary" data-toggle="modal" data-target="#modal${index}">Learn More</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal fade" id="modal${index}" tabindex="-1" role="dialog">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">${caseItem.name}</h5>
-                                    <button type="button" class="close" data-dismiss="modal">
-                                        <span>&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    <p><strong>Challenge:</strong> ${caseItem.Challenge}</p>
-                                    <p><strong>Solution:</strong> ${caseItem.solution}</p>
-                                    <p><strong>Benefit:</strong> ${caseItem.benefit}</p>
-                                    <p><strong>Impact:</strong> ${caseItem.impact}</p>
-                                    <p><strong>Complexity:</strong> ${caseItem.complexity}</p>
-                                    <p><strong>Subdomain:</strong> ${caseItem.subdomain}</p>
-                                    <p><strong>Industries:</strong> ${caseItem.industries.join(', ')}</p>
-                                    <p><strong>Technologies:</strong> ${caseItem.technologies.join(', ')}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                $('#cardsContainer').append(cardHtml);
-            });
-        }
-
-        $('#searchInput').on('input', fetchFilteredData);
-        $('#subdomainSelect, #industrySelect, #technologySelect').on('change', fetchFilteredData);
-
-        // Initial fetch to populate data
-        fetchFilteredData();
-    });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="/static/js/script.js"></script>
 </body>
 </html>
