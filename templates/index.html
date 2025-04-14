@@ -5,84 +5,146 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PwC AI Use Case Explorer</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <!-- Optional: Add Bootstrap Icons for clearer buttons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        /* Simple highlight style */
+        mark {
+            background-color: #ffc107; /* Bootstrap warning yellow */
+            padding: 0.1em;
+            border-radius: 0.2em;
+        }
+        /* Ensure offcanvas body allows scrolling if content overflows */
+        .offcanvas-body {
+            overflow-y: auto;
+        }
+        /* Make cards clickable */
+        .card[data-bs-toggle="modal"] {
+            cursor: pointer;
+        }
+        /* Style for select/deselect links */
+        .filter-select-all {
+            font-size: 0.8em;
+            cursor: pointer;
+            text-decoration: underline;
+            color: #adb5bd; /* Lighter gray */
+            margin-left: 5px;
+        }
+        .filter-select-all:hover {
+            color: #f8f9fa; /* Lighter on hover */
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">PwC AI Use Case Explorer</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" href="/">PwC AI Use Case Explorer</a>
+            <!-- Navbar toggler for mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavContent" aria-controls="navbarNavContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="subdomainDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Subdomains
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="subdomainDropdown">
-                            <li>
-                                <div class="form-check" id="subdomain-filters">
-                                    {% for subdomain in subdomains %}
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="{{ subdomain.lower() }}" id="subdomain-{{ subdomain.lower() }}">
-                                        <label class="form-check-label" for="subdomain-{{ subdomain.lower() }}">{{ subdomain }}</label>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="industryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Industries
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="industryDropdown">
-                            <li>
-                                <div class="form-check" id="industry-filters">
-                                    {% for industry in industries %}
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="{{ industry.lower() }}" id="industry-{{ industry.lower() }}">
-                                        <label class="form-check-label" for="industry-{{ industry.lower() }}">{{ industry }}</label>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="technologyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Technologies
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="technologyDropdown">
-                            <li>
-                                <div class="form-check" id="technology-filters">
-                                    {% for technology in technologies %}
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="{{ technology.lower() }}" id="technology-{{ technology.lower() }}">
-                                        <label class="form-check-label" for="technology-{{ technology.lower() }}">{{ technology }}</label>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </li>
-                        </ul>
+            <div class="collapse navbar-collapse" id="navbarNavContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <!-- Button to trigger Offcanvas Filter Sidebar -->
+                        <button class="btn btn-outline-secondary me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterOffcanvas" aria-controls="filterOffcanvas">
+                            <i class="bi bi-funnel-fill"></i> Filters
+                        </button>
                     </li>
                 </ul>
-                <form class="d-flex">
-                    <input class="form-control bg-dark text-white me-2" type="search" id="search-input" placeholder="Search use cases" aria-label="Search">
-                    <button class="btn btn-outline-light" type="button" id="clear-filters">🧹</button>
+                <!-- Search and Clear moved to the right -->
+                <form class="d-flex ms-auto">
+                    <input class="form-control bg-dark text-white me-2" type="search" id="search-input" placeholder="Search name, challenge..." aria-label="Search">
+                    <button class="btn btn-outline-light" type="button" id="clear-filters" aria-label="Clear all filters">
+                        <i class="bi bi-trash3"></i> <span class="visually-hidden">Clear Filters</span>
+                    </button>
                 </form>
             </div>
         </div>
     </nav>
-<br><br>
-    <div class="container my-4">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="active-filters">
-                    <span id="active-filters-text"></span>
+
+    <!-- Offcanvas Filter Sidebar -->
+    <div class="offcanvas offcanvas-start bg-dark text-white" tabindex="-1" id="filterOffcanvas" aria-labelledby="filterOffcanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="filterOffcanvasLabel">Filters</h5>
+            <button type="button" class="btn-close btn-close-white text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div>
+                <h6>Subdomains
+                    <span class="filter-select-all" data-filter-group="subdomain">(Select All)</span>
+                    <span class="filter-select-all" data-filter-group="subdomain" data-select="none">(Deselect All)</span>
+                </h6>
+                <div id="subdomain-filters">
+                    {% for subdomain in subdomains %}
+                    <div class="form-check">
+                        <input class="form-check-input filter-checkbox" type="checkbox" value="{{ subdomain.lower() }}" id="subdomain-{{ subdomain.lower() }}" data-filter-group="subdomain">
+                        <label class="form-check-label" for="subdomain-{{ subdomain.lower() }}">{{ subdomain }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <hr class="text-secondary">
+            </div>
+            <div>
+                <h6>Industries
+                    <span class="filter-select-all" data-filter-group="industry">(Select All)</span>
+                    <span class="filter-select-all" data-filter-group="industry" data-select="none">(Deselect All)</span>
+                </h6>
+                <div id="industry-filters">
+                    {% for industry in industries %}
+                    <div class="form-check">
+                        <input class="form-check-input filter-checkbox" type="checkbox" value="{{ industry.lower() }}" id="industry-{{ industry.lower() }}" data-filter-group="industry">
+                        <label class="form-check-label" for="industry-{{ industry.lower() }}">{{ industry }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <hr class="text-secondary">
+            </div>
+            <div>
+                <h6>Technologies
+                    <span class="filter-select-all" data-filter-group="technology">(Select All)</span>
+                    <span class="filter-select-all" data-filter-group="technology" data-select="none">(Deselect All)</span>
+                </h6>
+                <div id="technology-filters">
+                    {% for technology in technologies %}
+                    <div class="form-check">
+                        <input class="form-check-input filter-checkbox" type="checkbox" value="{{ technology.lower() }}" id="technology-{{ technology.lower() }}" data-filter-group="technology">
+                        <label class="form-check-label" for="technology-{{ technology.lower() }}">{{ technology }}</label>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="container my-4">
+        <div class="row mb-3 align-items-center">
+            <!-- Active Filters Display -->
+            <div class="col-md-8">
+                <div class="active-filters">
+                    <span id="active-filters-text" class="text-muted small">No filters applied</span>
+                </div>
+            </div>
+            <!-- Sorting Controls -->
+            <div class="col-md-4 text-md-end">
+                 <label for="sort-select" class="visually-hidden">Sort by</label>
+                 <select id="sort-select" class="form-select form-select-sm bg-dark text-white d-inline-block w-auto">
+                     <option value="default" selected>Sort by Default</option>
+                     <option value="name-asc">Name (A-Z)</option>
+                     <option value="name-desc">Name (Z-A)</option>
+                 </select>
+            </div>
+        </div>
+
+        <!-- Loading Indicator and Card Container -->
+        <div id="loading-indicator" class="text-center my-5" style="display: none;">
+            <div class="spinner-border text-light" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <div id="error-message" class="alert alert-danger" style="display: none;" role="alert">
+            <!-- Error messages will be shown here -->
         </div>
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="case-cards">
             <!-- Case cards will be populated here -->
@@ -98,9 +160,10 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p id="challenge"></p>
-                    <p id="solution"></p>
-                    <p id="benefit"></p>
+                    <p><strong>Challenge:</strong> <span id="challenge"></span></p>
+                    <p><strong>Solution:</strong> <span id="solution"></span></p>
+                    <p><strong>Benefit:</strong> <span id="benefit"></span></p>
+                    <hr>
                     <p><strong>Subdomain:</strong> <span id="subdomain"></span></p>
                     <p><strong>Process:</strong> <span id="process"></span></p>
                     <p><strong>Technologies:</strong></p>
@@ -108,7 +171,15 @@
                     <p><strong>Industries:</strong></p>
                     <ul id="industries"></ul>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-outline-secondary" id="modal-prev-btn" aria-label="Previous Use Case">
+                            <i class="bi bi-arrow-left"></i> Previous
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="modal-next-btn" aria-label="Next Use Case">
+                            Next <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
@@ -117,95 +188,128 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script>
-        const caseModal = document.getElementById('caseModal');
+        // --- DOM Elements ---
+        const caseModalElement = document.getElementById('caseModal');
+        const caseModal = new bootstrap.Modal(caseModalElement); // Bootstrap Modal instance
         const caseModalLabel = document.getElementById('caseModalLabel');
         const challenge = document.getElementById('challenge');
         const solution = document.getElementById('solution');
         const benefit = document.getElementById('benefit');
         const subdomain = document.getElementById('subdomain');
         const process = document.getElementById('process');
-        const technologies = document.getElementById('technologies');
-        const industries = document.getElementById('industries');
+        const technologiesList = document.getElementById('technologies');
+        const industriesList = document.getElementById('industries');
+        const modalPrevBtn = document.getElementById('modal-prev-btn');
+        const modalNextBtn = document.getElementById('modal-next-btn');
 
-        const subdomainFilters = document.querySelectorAll('#subdomain-filters input[type="checkbox"]');
-        const industryFilters = document.querySelectorAll('#industry-filters input[type="checkbox"]');
-        const technologyFilters = document.querySelectorAll('#technology-filters input[type="checkbox"]');
+        const filterCheckboxes = document.querySelectorAll('.filter-checkbox');
         const searchInput = document.getElementById('search-input');
         const clearFiltersButton = document.getElementById('clear-filters');
         const activeFiltersText = document.getElementById('active-filters-text');
+        const caseCardsContainer = document.getElementById('case-cards');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const errorMessageDiv = document.getElementById('error-message');
+        const sortSelect = document.getElementById('sort-select');
+        const filterSelectAllLinks = document.querySelectorAll('.filter-select-all');
 
-        caseModal.addEventListener('show.bs.modal', event => {
-            const card = event.relatedTarget;
-            const caseData = JSON.parse(card.getAttribute('data-case'));
+        // --- State Variables ---
+        let allCases = []; // Holds all cases fetched initially
+        let currentFilteredCases = []; // Holds the currently displayed cases
+        let currentModalIndex = -1; // Index of the case shown in the modal within currentFilteredCases
+        let searchDebounceTimer;
+        const DEBOUNCE_DELAY = 300; // milliseconds
 
-            caseModalLabel.textContent = caseData.name;
-            challenge.textContent = caseData.Challenge;
-            solution.textContent = caseData.solution;
-            benefit.textContent = caseData.benefit;
+        // --- Utility Functions ---
+        function debounce(func, delay) {
+            return function(...args) {
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(() => {
+                    func.apply(this, args);
+                }, delay);
+            };
+        }
+
+        function highlightText(text, searchTerm) {
+            if (!searchTerm || !text) {
+                return text;
+            }
+            const regex = new RegExp(`(${searchTerm.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+        }
+
+        // --- Core Logic ---
+
+        function populateModal(caseData, index) {
+            currentModalIndex = index;
+            const searchTerm = searchInput.value.trim();
+
+            caseModalLabel.innerHTML = highlightText(caseData.name, searchTerm);
+            challenge.innerHTML = highlightText(caseData.Challenge, searchTerm);
+            solution.innerHTML = highlightText(caseData.solution, searchTerm);
+            benefit.innerHTML = highlightText(caseData.benefit, searchTerm);
             subdomain.textContent = caseData.subdomain;
             process.textContent = caseData.process;
 
-            technologies.innerHTML = '';
+            technologiesList.innerHTML = '';
             caseData.technologies
-                .filter(tech => tech.value > 0)  // Only show technologies with value > 0
+                .filter(tech => tech.value > 0)
                 .forEach(tech => {
                     const li = document.createElement('li');
-                    li.textContent = tech.name;   // Use the name property
-                    technologies.appendChild(li);
+                    li.textContent = tech.name;
+                    technologiesList.appendChild(li);
                 });
 
-            industries.innerHTML = '';
+            industriesList.innerHTML = '';
             caseData.industries
-                .filter(ind => ind.value > 0)    // Only show industries with value > 0
+                .filter(ind => ind.value > 0)
                 .forEach(ind => {
                     const li = document.createElement('li');
-                    li.textContent = ind.name;    // Use the name property
-                    industries.appendChild(li);
+                    li.textContent = ind.name;
+                    industriesList.appendChild(li);
                 });
-        });
 
-        function updateCards(filteredCases) {
-            const caseCards = document.getElementById('case-cards');
-            caseCards.innerHTML = '';
-            if (filteredCases.length === 0) {
-                const col = document.createElement('div');
-                col.className = 'col';
+            // Update Prev/Next button states
+            modalPrevBtn.disabled = index <= 0;
+            modalNextBtn.disabled = index >= currentFilteredCases.length - 1;
+        }
 
-                const card = document.createElement('div');
-                card.className = 'card bg-dark text-white';
+        function updateCards(casesToDisplay) {
+            caseCardsContainer.innerHTML = ''; // Clear previous cards
+            errorMessageDiv.style.display = 'none'; // Hide any previous error
+            currentFilteredCases = casesToDisplay; // Store the currently displayed set for modal navigation
+            const searchTerm = searchInput.value.trim();
 
-                const cardBody = document.createElement('div');
-                cardBody.className = 'card-body';
-
-                const text = document.createElement('p');
-                text.className = 'card-text';
-                text.textContent = 'No use cases found.';
-
-                cardBody.appendChild(text);
-                card.appendChild(cardBody);
-                col.appendChild(card);
-                caseCards.appendChild(col);
+            if (casesToDisplay.length === 0) {
+                caseCardsContainer.innerHTML = '<div class="col"><p class="text-center text-muted">No use cases found matching your criteria.</p></div>';
             } else {
-                filteredCases.forEach(caseData => {
+                casesToDisplay.forEach((caseData, index) => {
                     const col = document.createElement('div');
                     col.className = 'col';
 
                     const card = document.createElement('div');
-                    card.className = 'card bg-dark text-white h-100'; // Added h-100 for consistent height
+                    card.className = 'card bg-dark text-white h-100';
                     card.setAttribute('data-bs-toggle', 'modal');
                     card.setAttribute('data-bs-target', '#caseModal');
+                    // Store index instead of full data to reduce DOM size slightly
+                    card.setAttribute('data-case-index', index);
+                    // Keep data for potential future use, but primarily use index now
                     card.setAttribute('data-case', JSON.stringify(caseData));
-                    card.style.cursor = 'pointer';
 
                     const cardBody = document.createElement('div');
                     cardBody.className = 'card-body d-flex flex-column';
 
                     const title = document.createElement('h5');
-                    title.className = 'card-title mb-3';
-                    title.textContent = caseData.name;
+                    title.className = 'card-title mb-2';
+                    title.innerHTML = highlightText(caseData.name, searchTerm); // Highlight title
+
+                    const snippet = document.createElement('p');
+                    snippet.className = 'card-text small text-muted mb-3';
+                    // Show first ~100 chars of challenge as snippet
+                    const challengeText = caseData.Challenge || '';
+                    snippet.innerHTML = highlightText(challengeText.substring(0, 100) + (challengeText.length > 100 ? '...' : ''), searchTerm);
 
                     const pillsContainer = document.createElement('div');
-                    pillsContainer.className = 'mt-auto d-flex gap-2 flex-wrap';
+                    pillsContainer.className = 'mt-auto d-flex gap-2 flex-wrap'; // mt-auto pushes pills to bottom
 
                     const subdomainPill = document.createElement('span');
                     subdomainPill.className = 'badge rounded-pill bg-success';
@@ -215,136 +319,243 @@
                     processPill.className = 'badge rounded-pill bg-secondary';
                     processPill.textContent = caseData.process;
 
-                    pillsContainer.appendChild(subdomainPill);  // Subdomain first
-                    pillsContainer.appendChild(processPill);    // Process second
+                    pillsContainer.appendChild(subdomainPill);
+                    pillsContainer.appendChild(processPill);
 
                     cardBody.appendChild(title);
+                    cardBody.appendChild(snippet); // Add snippet
                     cardBody.appendChild(pillsContainer);
                     card.appendChild(cardBody);
                     col.appendChild(card);
-                    caseCards.appendChild(col);
+                    caseCardsContainer.appendChild(col);
                 });
             }
         }
 
-        function filterCases() {
-            const selectedSubdomains = Array.from(subdomainFilters)
-                .filter(checkbox => checkbox.checked)
-                .map(checkbox => checkbox.value);
-
-            const selectedIndustries = Array.from(industryFilters)
-                .filter(checkbox => checkbox.checked)
-                .map(checkbox => checkbox.value);
-
-            const selectedTechnologies = Array.from(technologyFilters)
-                .filter(checkbox => checkbox.checked)
-                .map(checkbox => checkbox.value);
-
-            const searchTerm = searchInput.value.trim();
-            
-            const params = new URLSearchParams();
-            
-            selectedSubdomains.forEach(value => params.append('subdomains', value));
-            selectedIndustries.forEach(value => params.append('industries', value));
-            selectedTechnologies.forEach(value => params.append('technologies', value));
-            
-            if (searchTerm) {
-                params.append('search', searchTerm);
+        function sortCases(cases, sortBy) {
+            const sortedCases = [...cases]; // Create a copy to avoid modifying original
+            switch (sortBy) {
+                case 'name-asc':
+                    sortedCases.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'name-desc':
+                    sortedCases.sort((a, b) => b.name.localeCompare(a.name));
+                    break;
+                // Add more sorting options here if needed
+                case 'default':
+                default:
+                    // Return to original fetched order or apply default backend sort
+                    // For now, we'll rely on the order from the API or initial fetch
+                    return cases; // Return original array reference if no specific sort
             }
-
-            const url = '/filter' + (params.toString() ? '?' + params.toString() : '');
-
-            fetch(url)
-                .then(response => response.json())
-                .then(filteredCases => {
-                    updateCards(filteredCases);
-                    updateActiveFilters(selectedSubdomains, selectedIndustries, selectedTechnologies, searchTerm);
-                })
-                .catch(error => console.error(error));
+            return sortedCases;
         }
 
-        function updateActiveFilters(selectedSubdomains, selectedIndustries, selectedTechnologies, searchTerm) {
-            const activeFilters = [];
 
-            if (selectedSubdomains.length > 0) {
-                activeFilters.push(`Subdomains: ${selectedSubdomains.join(', ')}`);
-            }
+        function filterAndDisplayCases() {
+            loadingIndicator.style.display = 'block'; // Show loading
+            errorMessageDiv.style.display = 'none'; // Hide error
+            caseCardsContainer.innerHTML = ''; // Clear cards immediately
 
-            if (selectedIndustries.length > 0) {
-                activeFilters.push(`Industries: ${selectedIndustries.join(', ')}`);
-            }
+            const selectedFilters = {};
+            const activeFilterLabels = [];
+            let hasFilters = false;
 
-            if (selectedTechnologies.length > 0) {
-                activeFilters.push(`Technologies: ${selectedTechnologies.join(', ')}`);
-            }
+            ['subdomain', 'industry', 'technology'].forEach(group => {
+                const groupCheckboxes = document.querySelectorAll(`#${group}-filters input[type="checkbox"]`);
+                const selected = Array.from(groupCheckboxes)
+                    .filter(checkbox => checkbox.checked)
+                    .map(checkbox => checkbox.value);
+                if (selected.length > 0) {
+                    selectedFilters[group] = selected;
+                    activeFilterLabels.push(`${group.charAt(0).toUpperCase() + group.slice(1)}: ${selected.join(', ')}`);
+                    hasFilters = true;
+                }
+            });
 
+            const searchTerm = searchInput.value.trim();
             if (searchTerm) {
-                activeFilters.push(`Search: ${searchTerm}`);
+                selectedFilters['search'] = searchTerm;
+                activeFilterLabels.push(`Search: "${searchTerm}"`);
+                hasFilters = true;
             }
 
-            activeFiltersText.textContent = activeFilters.join(' | ') || 'No filters applied';
+            const params = new URLSearchParams();
+            Object.entries(selectedFilters).forEach(([key, values]) => {
+                if (key === 'search') {
+                    params.append(key, values);
+                } else {
+                    values.forEach(value => params.append(key, value));
+                }
+            });
+
+            const queryString = params.toString();
+            const url = '/filter' + (queryString ? '?' + queryString : '');
+
+            // Update URL bar without reloading
+            const newUrl = window.location.pathname + (queryString ? '?' + queryString : '');
+            history.pushState({ path: newUrl }, '', newUrl);
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(filteredCases => {
+                    allCases = filteredCases; // Update the base list for sorting
+                    const sortBy = sortSelect.value;
+                    const sortedCases = sortCases(allCases, sortBy);
+                    updateCards(sortedCases);
+                    updateActiveFilters(activeFilterLabels, hasFilters);
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    errorMessageDiv.textContent = `Failed to load use cases: ${error.message}. Please try again later.`;
+                    errorMessageDiv.style.display = 'block';
+                    updateActiveFilters([], false); // Clear active filters display on error
+                })
+                .finally(() => {
+                    loadingIndicator.style.display = 'none'; // Hide loading
+                });
+        }
+
+        function updateActiveFilters(activeFilterLabels, hasFilters) {
+             if (hasFilters) {
+                activeFiltersText.textContent = activeFilterLabels.join(' | ');
+                activeFiltersText.classList.remove('text-muted');
+            } else {
+                activeFiltersText.textContent = 'No filters applied';
+                activeFiltersText.classList.add('text-muted');
+            }
         }
 
         function clearFilters() {
-            subdomainFilters.forEach(checkbox => checkbox.checked = false);
-            industryFilters.forEach(checkbox => checkbox.checked = false);
-            technologyFilters.forEach(checkbox => checkbox.checked = false);
+            filterCheckboxes.forEach(checkbox => checkbox.checked = false);
             searchInput.value = '';
-            filterCases();
+            sortSelect.value = 'default'; // Reset sort dropdown
+            // Clear URL parameters and trigger filter refresh
+            history.pushState({ path: window.location.pathname }, '', window.location.pathname);
+            filterAndDisplayCases();
         }
 
-        subdomainFilters.forEach(checkbox => checkbox.addEventListener('change', filterCases));
-        industryFilters.forEach(checkbox => checkbox.addEventListener('change', filterCases));
-        technologyFilters.forEach(checkbox => checkbox.addEventListener('change', filterCases));
-        searchInput.addEventListener('input', filterCases);
-        clearFiltersButton.addEventListener('click', clearFilters);
+        function handleSelectAll(event) {
+            const group = event.target.dataset.filterGroup;
+            const selectNone = event.target.dataset.select === 'none';
+            if (!group) return;
 
-        // Fetch and render all use cases on page load
-        fetch('/filter')
-            .then(response => response.json())
-            .then(data => {
-                updateCards(data);
-            })
-            .catch(error => console.error(error));
+            const groupCheckboxes = document.querySelectorAll(`.filter-checkbox[data-filter-group="${group}"]`);
+            groupCheckboxes.forEach(checkbox => {
+                checkbox.checked = !selectNone;
+            });
+            filterAndDisplayCases(); // Trigger filtering after changing checks
+        }
+
+        // --- Event Listeners ---
+        caseModalElement.addEventListener('show.bs.modal', event => {
+            const card = event.relatedTarget;
+            const index = parseInt(card.getAttribute('data-case-index'), 10);
+            if (!isNaN(index) && index >= 0 && index < currentFilteredCases.length) {
+                const caseData = currentFilteredCases[index];
+                populateModal(caseData, index);
+            } else {
+                // Fallback or error handling if index is invalid
+                console.error("Could not get case index from card.");
+                // Optionally close the modal or show an error message inside it
+                caseModal.hide();
+            }
+        });
+
+        modalPrevBtn.addEventListener('click', () => {
+            if (currentModalIndex > 0) {
+                const prevIndex = currentModalIndex - 1;
+                populateModal(currentFilteredCases[prevIndex], prevIndex);
+            }
+        });
+
+        modalNextBtn.addEventListener('click', () => {
+            if (currentModalIndex < currentFilteredCases.length - 1) {
+                const nextIndex = currentModalIndex + 1;
+                populateModal(currentFilteredCases[nextIndex], nextIndex);
+            }
+        });
+
+        filterCheckboxes.forEach(checkbox => checkbox.addEventListener('change', filterAndDisplayCases));
+        searchInput.addEventListener('input', debounce(filterAndDisplayCases, DEBOUNCE_DELAY));
+        clearFiltersButton.addEventListener('click', clearFilters);
+        sortSelect.addEventListener('change', () => {
+            // Re-sort and display the *currently* fetched/filtered cases
+            const sortedCases = sortCases(allCases, sortSelect.value);
+            updateCards(sortedCases);
+            // No need to re-fetch, just re-render
+        });
+        filterSelectAllLinks.forEach(link => link.addEventListener('click', handleSelectAll));
+
+        // --- Initial Load ---
+        function initializePage() {
+            // Parse URL parameters on load
+            const urlParams = new URLSearchParams(window.location.search);
+            let filtersFromUrl = false;
+
+            urlParams.forEach((value, key) => {
+                if (key === 'search') {
+                    searchInput.value = value;
+                    filtersFromUrl = true;
+                } else if (['subdomains', 'industries', 'technologies'].includes(key)) {
+                    // The key might be plural (e.g., 'subdomains'), map to singular for ID matching
+                    const singularKey = key.slice(0, -1); // 'subdomain', 'industry', 'technology'
+                    const checkboxId = `${singularKey}-${value.toLowerCase()}`;
+                    const checkbox = document.getElementById(checkboxId);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        filtersFromUrl = true;
+                    }
+                }
+                // Note: Sorting state isn't typically stored in URL unless explicitly designed for it
+            });
+
+            // Fetch and render cases based on URL params or default
+            filterAndDisplayCases();
+        }
+
+        // Initialize after the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', initializePage);
+
     </script>
+    <!-- Inactivity Timeout Script (Optional - Keep if needed) -->
     <script>
         let inactivityTimer;
-        const TIMEOUT = 600000; // 600000 - 10 minutes in milliseconds
+        const TIMEOUT = 600000; // 10 minutes
 
-        function resetTimer() {
+        function resetInactivityTimer() {
             clearTimeout(inactivityTimer);
             inactivityTimer = setTimeout(() => {
-                // Clear filters before reload
-                localStorage.clear(); // Clear any stored filter states
-                clearFilters(); // Clear UI filters
-                window.location.href = window.location.pathname; // Reload to base URL without query parameters
+                console.log("Inactivity timeout reached. Clearing filters and reloading.");
+                // Clear filters (UI and URL state) before reload
+                clearFilters(); // Use the existing clear function
+                // Optional: Add a small delay to ensure clearFilters completes state update
+                // setTimeout(() => {
+                //     window.location.href = window.location.pathname; // Reload to base URL
+                // }, 100);
             }, TIMEOUT);
         }
 
-        // User activity events to monitor
-        const events = [
-            'mousedown',
-            'mousemove',
-            'keypress',
-            'scroll',
-            'touchstart',
-            'click'
-        ];
-
-        // Add event listeners for all tracked events
-        events.forEach(event => {
-            document.addEventListener(event, resetTimer, true);
+        const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click', 'change'];
+        activityEvents.forEach(event => {
+            document.addEventListener(event, resetInactivityTimer, true);
         });
 
-        // Initial setup of timer when page loads
-        resetTimer();
+        // Initial setup
+        resetInactivityTimer();
 
-        // Clear filters when page loads if it was a reload
-        window.addEventListener('load', () => {
-            if (performance.navigation.type === 1) { // Check if it's a reload
-                clearFilters();
-            }
-        });
+        // Note: The previous reload check (performance.navigation.type) is deprecated.
+        // Relying on initializePage parsing URL params is generally sufficient.
+        // If a strict "clear on reload" is needed regardless of URL, you might add:
+        // window.addEventListener('load', () => {
+        //    // Check if it's a reload *and* there are no URL params? Complex logic.
+        //    // For simplicity, the current setup relies on URL state persistence.
+        // });
     </script>
 </body>
 </html>
